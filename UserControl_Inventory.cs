@@ -18,6 +18,7 @@ namespace User_Control_Demo
         static string[,] saveArrayInventory = null;
         int rows, columns;
         StreamReader inputFile;
+        DataGridViewCell currentCell = null;
 
         public UserControl_Inventory()
         {
@@ -29,10 +30,75 @@ namespace User_Control_Demo
             // Load CSV File into Array
             // Assumes file is in folder bin/debug
             string filename = "Inventario_Bodega.csv";
+            //string filename = "Inventory.xlsx"; // ERROR
             FromFileToArray(ref dataArrayInventory, filename);
             // Create a DGV with the data in dataArray
             arrayToDGV(ref dataArrayInventory, ref dgvInventory);
+            dgvInventory.Columns["Codigo"].ReadOnly = true;
+            dgvInventory.Columns["Marca"].ReadOnly = true;
+            dgvInventory.Columns["Articulo"].ReadOnly = true;
+            dgvInventory.Columns["Unidades"].ReadOnly = true;
+            dgvInventory.Columns["Costo_Unidad"].ReadOnly = true;
+
+            Btn_SaveChanges.Enabled = false;
         }
+
+        private void dgvInventory_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            //// Save reference to current cell
+            //currentCell = dgvInventory.CurrentCell;
+
+            //if (currentCell.ColumnIndex.Equals(dgvInventory.Columns["Unidades"].Index))
+            //    // Copy text from selected cell to textbox
+            //    txtBoxUnits.Text = dgvInventory.CurrentCell.Value.ToString();
+            //else
+            //    currentCell.Selected = false;
+
+        }
+
+
+        private void dgvInventory_SelectionChanged(object sender, EventArgs e)
+        {
+
+            // Save reference to current cell
+            currentCell = dgvInventory.CurrentCell;
+
+            if (currentCell.ColumnIndex.Equals(dgvInventory.Columns["Unidades"].Index))
+            {
+                // Copy text from selected cell to textbox
+                txtBoxUnits.Text = dgvInventory.CurrentCell.Value.ToString();
+                Btn_SaveChanges.Enabled = true;
+            }
+            else
+            {
+                currentCell.Selected = false;
+                txtBoxUnits.Text = "";
+                Btn_SaveChanges.Enabled = false;
+            }
+
+        }
+
+        private void Btn_Validate_and_Update(object sender, EventArgs e)
+        {
+            string newText = txtBoxUnits.Text;
+            int newValue = 0;
+            bool success = Int32.TryParse(newText, out newValue);
+            if (success)
+            {
+                if (newValue >= 0)
+                {
+                    currentCell.Value = newValue;
+                    MessageBox.Show("Saved: " + newValue);
+                } else
+                    MessageBox.Show("Please enter non-negative value");
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid number");
+            }
+
+        }
+
 
         public void FromFileToArray(ref string[,] dataArray, string filename)
         {
@@ -124,6 +190,7 @@ namespace User_Control_Demo
             string filename = "Inventario_Bodega.csv";
             DGVtoArraytoFile(ref saveArrayInventory, filename, ref dgvInventory);
         }
+
 
         public void DGVtoArraytoFile(ref string[,] saveArray, string filename, ref DataGridView dgv)
         {
